@@ -1,0 +1,47 @@
+groups:
+
+  - name: branch_ping_alerts
+    rules:
+    
+      # Alerta de sucursal caída
+      - alert: BranchDown
+        expr: avg_over_time(probe_success[1m]) == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Switch caído: {{ $labels.branch }}"
+          description: "Pérdida total del 100% en Switch: {{ $labels.branch }} ({{ $labels.instance }})."
+          
+      # Alerta de pérdida de paquetes para ICMP
+      - alert: HighPacketLoss
+        expr: (1 - avg_over_time(probe_success{branch=~".*"}[10m])) * 100 > 10 and avg_over_time(probe_success{branch=~".*"}[10m]) < 0.90 and avg_over_time(probe_success{branch=~".*"}[10m]) > 0.10
+        for: 10m
+        #keep_firing_for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Perdida de paquetes detectada en SW: {{ $labels.branch }}"
+          description: "Perdida de paquetes supera 10%, ultimos 5 minutos: {{ $labels.branch }} ({{ $labels.instance }})."
+
+      # Alerta de alta latencia para ICMP
+      - alert: HighLatency
+        expr: avg_over_time(probe_icmp_duration_seconds{phase="rtt"}[5m]) > 0.3
+        #expr: probe_success == 1 and (avg_over_time(probe_duration_seconds{job="blackbox-icmp"}[3m]) > 0.3)
+        for: 5m
+        #keep_firing_for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alta latencia detectada en SW: {{ $labels.branch }}"
+          description: "Latencia supera 300ms, ultimos 5 minutos: {{ $labels.branch }} ({{ $labels.instance }})."
+
+      # Alerta del tablero 'Promedio de Pérdida de paquetes Sucursalas', si hay mas de 5% durante 5minutos, indica que hay varias sucursales con perdidas
+      - alert: AnomaliaRedSucursales
+        expr: (1 - avg(avg_over_time(probe_success{branch=~".*"}[5m]))) * 100 > 5
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "URGENTE: Pérdida de paquetes en varias sucursales"
+          description: "Se detectó pérdida de paquetes superior al 5% en las últimas 5 minutos en varias sucursales."

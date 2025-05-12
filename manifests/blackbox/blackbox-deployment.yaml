@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blackbox
+  namespace: monitoring
+  labels:
+    app: blackbox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blackbox
+  template:
+    metadata:
+      labels:
+        app: blackbox
+    spec:
+      containers:
+      - name: blackbox
+        image: prom/blackbox-exporter:v0.25.0
+        args:
+          - "--config.file=/etc/blackbox/blackbox.yml"
+        ports:
+          - containerPort: 9115
+        volumeMounts:
+          - name: blackbox-config
+            mountPath: /etc/blackbox
+            readOnly: true
+        env:
+          - name: TZ
+            value: "America/Bogota"
+      volumes:
+        - name: blackbox-config
+          configMap:
+            name: blackbox-config

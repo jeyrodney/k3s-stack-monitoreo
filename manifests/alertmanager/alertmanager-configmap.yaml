@@ -1,0 +1,29 @@
+apiVersion: v1
+data:
+  alertmanager.yml: |
+    route:
+      receiver: 'webhook_receiver'
+
+    receivers:
+      - name: 'webhook_receiver'
+        webhook_configs:
+          - url: 'http://alert-listener:5000/alert'
+            send_resolved: true
+
+    inhibit_rules:
+      - source_match:
+          severity: 'critical'
+        target_match:
+          severity: 'warning'
+        equal: ['alertname', 'instance'] #Inhibe Alertas warning si ya hay una alerta critical para la misma sucursal
+
+      - source_match:
+          alertname: 'BranchDown'
+        target_match:
+          alertname: 'HighPacketLoss'
+        equal: ['branch']  # Inhibe HighPacketLoss si BranchDown tiene la misma etiqueta 'branch' (misma sucursal)
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: alertmanager-config
+  namespace: monitoring

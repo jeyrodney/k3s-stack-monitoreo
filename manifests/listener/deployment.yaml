@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alert-listener
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alert-listener
+  template:
+    metadata:
+      labels:
+        app: alert-listener
+    spec:
+      containers:
+      - name: alert-listener
+        image: python-server-listener:1.0
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5000
+        env:
+        - name: TZ
+          value: America/Bogota
