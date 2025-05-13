@@ -1,0 +1,21 @@
+curl -sfL https://get.k3s.io | sh -
+sudo systemctl status k3s
+mkdir -p ~/.kube sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config sudo chown $(id -u):$(id -g) ~/.kube/config export KUBECONFIG=~/.kube/config
+export KUBECONFIG=~/.kube/config
+mkdir ~/.kube 2> /dev/null
+k3s kubectl config view --raw > "$KUBECONFIG"
+chmod 600 "$KUBECONFIG"
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+sudo usermod -aG k3s $USER
+sudo sh -c 'echo "export PATH=\$PATH:/usr/local/bin" >> /root/.bashrc'
+sudo visudo #abre el archivo de configuración de sudo, hay que agregar :/usr/local/bin en el path para que quede aglo asi:
+  Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
+
+#permisos para archivo de config k3s
+
+mkdir -p ~/.kube
+sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+sudo chown $USER:$USER ~/.kube/config
+echo 'export KUBECONFIG=~/.kube/config' >> ~/.bashrc
+source ~/.bashrc
+
